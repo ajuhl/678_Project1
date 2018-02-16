@@ -115,11 +115,9 @@ void run_echo(EchoCommand cmd) {
 
   // TODO: Implement echo DONE!!
   //IMPLEMENT_ME();
-  for(int i=0; i<sizeof(cmd.args); i++){
-    if(cmd.args[i] != NULL){
+  while(cmd.args[i] != NULL){
       printf("%s ",cmd.args[i]);
     }
-  }
   printf("\n");
 
   // Flush the buffer before returning
