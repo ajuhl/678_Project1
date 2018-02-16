@@ -1,0 +1,4 @@
+ø¯ä
+/home/k882c352/eecs678/678_Project1/quash/test-cases/t4_builtin/sandbox
+hello\\n 
+hello 

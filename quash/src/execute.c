@@ -18,8 +18,54 @@
 /**
  * @brief Note calls to any function that requires implementation
  */
-//#define IMPLEMENT_ME()
-  //fprintf(stderr, "IMPLEMENT ME: %s(line %d): %s()\n", __FILE__, __LINE__, __FUNCTION__)
+#define IMPLEMENT_ME()
+  fprintf(stderr, "IMPLEMENT ME: %s(line %d): %s()\n", __FILE__, __LINE__, __FUNCTION__)
+
+IMPLEMENT_DEQUE_STRUCT(pid_deque, pid_t);
+IMPLEMENT_DEQUE(pid_deque, pid_t);
+
+/***************************************************************************
+ * Structs
+ ***************************************************************************/
+
+typedef struct JOB {
+	int job_id;
+	char* command;
+	pid_deque pid_queue;
+} JOB;
+
+IMPLEMENT_DEQUE_STRUCT(job_deque, JOB);
+IMPLEMENT_DEQUE(job_deque, JOB);
+
+job_deque Jobs; //creates queue of Jobs
+
+typedef struct ex_env { //execution enviroment
+	int num;
+	int pfd[2][2];
+	JOB job;
+} ex_env;
+
+static JOB __new_job(){
+	return (JOB) {
+		0, get_command_string(), new_pid_deque(1),
+	};
+}
+
+static void __remove_job(JOB job){
+	if(job.command != NULL)
+		free(job.command);
+			remove_pid_deque(&job.pid_queue);
+}
+
+static void __init_ex_env(ex_env* env){
+	assert(env != NULL);
+	__new_job(env->JOB)
+}
+
+static void __destroy_ex_env(ex_env* env){
+	assert (env != NULL);
+	__remove_job(e->JOB);
+}
 
 /***************************************************************************
  * Interface Functions
@@ -27,12 +73,23 @@
 
 // Return a string containing the current working directory.
 char* get_current_directory(bool* should_free) {
-  // TODO: Get the current working directory. This will fix the prompt path.
+  // TODO: DONE*** Get the current working directory. This will fix the prompt path.
   // HINT: This should be pretty simple
   //IMPLEMENT_ME();
   // Change this to true if necessary
+
+	long path = fpathconf(0,_PC_PATH_MAX);
+	if (path<0)
+	{
+		path = 1024;
+	}
+
   *should_free = true;
-    return (getcwd(NULL,0));
+
+	char *cwd = malloc(path); //allocates 1024 bytes of memory
+	getcwd(cwd, path); //gets pwd
+
+    return (cwd);
 
 }
 
@@ -57,6 +114,7 @@ void check_jobs_bg_status() {
   // jobs. This function should remove jobs from the jobs queue once all
   // processes belonging to a job have completed.
   //IMPLEMENT_ME();
+
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
   // print_job_bg_complete(job_id, pid, cmd);
@@ -164,7 +222,7 @@ void run_cd(CDCommand cmd) {
 
   // TODO: Update the PWD environment variable to be the new current working
   // directory and optionally update OLD_PWD environment variable to be the old
-  // working directory.
+  // working directory. DONE!!
   //IMPLEMENT_ME();
   bool should_free = true;
    char* pwd = get_current_directory(&should_free);

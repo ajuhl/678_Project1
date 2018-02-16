@@ -1,14 +1,70 @@
-==22063== Memcheck, a memory error detector
-==22063== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
-==22063== Using Valgrind-3.9.0 and LibVEX; rerun with -h for copyright info
-==22063== Command: /home/a002j556/EECS_678/Project1/quash/quash
-==22063== 
-==22063== 
-==22063== HEAP SUMMARY:
-==22063==     in use at exit: 0 bytes in 0 blocks
-==22063==   total heap usage: 8 allocs, 8 frees, 19,074 bytes allocated
-==22063== 
-==22063== All heap blocks were freed -- no leaks are possible
-==22063== 
-==22063== For counts of detected and suppressed errors, rerun with: -v
-==22063== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
+==13026== Memcheck, a memory error detector
+==13026== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
+==13026== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
+==13026== Command: /home/k882c352/eecs678/678_Project1/quash/quash
+==13026== 
+==13026== Invalid read of size 1
+==13026==    at 0x4C30F62: strlen (vg_replace_strmem.c:454)
+==13026==    by 0x4EA969B: puts (ioputs.c:35)
+==13026==    by 0x4019A3: run_pwd (execute.c:198)
+==13026==    by 0x401A4E: child_run_command (execute.c:242)
+==13026==    by 0x401B9D: create_process (execute.c:337)
+==13026==    by 0x401C6C: run_script (execute.c:357)
+==13026==    by 0x401370: main (quash.c:132)
+==13026==  Address 0xffefffa60 is on thread 1's stack
+==13026==  1016 bytes below stack pointer
+==13026== 
+==13026== Invalid read of size 1
+==13026==    at 0x4C30F74: strlen (vg_replace_strmem.c:454)
+==13026==    by 0x4EA969B: puts (ioputs.c:35)
+==13026==    by 0x4019A3: run_pwd (execute.c:198)
+==13026==    by 0x401A4E: child_run_command (execute.c:242)
+==13026==    by 0x401B9D: create_process (execute.c:337)
+==13026==    by 0x401C6C: run_script (execute.c:357)
+==13026==    by 0x401370: main (quash.c:132)
+==13026==  Address 0xffefffa61 is on thread 1's stack
+==13026==  1007 bytes below stack pointer
+==13026== 
+==13026== Invalid read of size 1
+==13026==    at 0x4EB5676: _IO_default_xsputn (genops.c:450)
+==13026==    by 0x4EB32C6: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1352)
+==13026==    by 0x4EA9737: puts (ioputs.c:40)
+==13026==    by 0x4019A3: run_pwd (execute.c:198)
+==13026==    by 0x401A4E: child_run_command (execute.c:242)
+==13026==    by 0x401B9D: create_process (execute.c:337)
+==13026==    by 0x401C6C: run_script (execute.c:357)
+==13026==    by 0x401370: main (quash.c:132)
+==13026==  Address 0xffefffa60 is on thread 1's stack
+==13026==  912 bytes below stack pointer
+==13026== 
+==13026== Invalid read of size 1
+==13026==    at 0x4EB5685: _IO_default_xsputn (genops.c:449)
+==13026==    by 0x4EB32C6: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1352)
+==13026==    by 0x4EA9737: puts (ioputs.c:40)
+==13026==    by 0x4019A3: run_pwd (execute.c:198)
+==13026==    by 0x401A4E: child_run_command (execute.c:242)
+==13026==    by 0x401B9D: create_process (execute.c:337)
+==13026==    by 0x401C6C: run_script (execute.c:357)
+==13026==    by 0x401370: main (quash.c:132)
+==13026==  Address 0xffefffa62 is on thread 1's stack
+==13026==  910 bytes below stack pointer
+==13026== 
+==13026== Invalid free() / delete / delete[] / realloc()
+==13026==    at 0x4C2EDEB: free (vg_replace_malloc.c:530)
+==13026==    by 0x4019AF: run_pwd (execute.c:200)
+==13026==    by 0x401A4E: child_run_command (execute.c:242)
+==13026==    by 0x401B9D: create_process (execute.c:337)
+==13026==    by 0x401C6C: run_script (execute.c:357)
+==13026==    by 0x401370: main (quash.c:132)
+==13026==  Address 0xffefffa60 is on thread 1's stack
+==13026==  976 bytes below stack pointer
+==13026== 
+==13026== 
+==13026== HEAP SUMMARY:
+==13026==     in use at exit: 0 bytes in 0 blocks
+==13026==   total heap usage: 10 allocs, 11 frees, 2,116,218 bytes allocated
+==13026== 
+==13026== All heap blocks were freed -- no leaks are possible
+==13026== 
+==13026== For counts of detected and suppressed errors, rerun with: -v
+==13026== ERROR SUMMARY: 10 errors from 5 contexts (suppressed: 0 from 0)
