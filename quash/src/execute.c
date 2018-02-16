@@ -13,6 +13,7 @@
 
 #include "quash.h"
 #include <unistd.h>
+#include <dirent.h>
 
 // Remove this and all expansion calls to it
 /**
@@ -97,12 +98,12 @@ char* get_current_directory(bool* should_free) {
 const char* lookup_env(const char* env_var) {
   // TODO: Lookup environment variables. This is required for parser to be able
   // to interpret variables from the command line and display the prompt
-  // correctly
+  // correctly DONE!!
   // HINT: This should be pretty simple
 
   //IMPLEMENT_ME();
 
-  // TODO: Remove warning silencers
+  // TODO: Remove warning silencers DONE!!
 //  (void) env_var; // Silence unused variable warning
 
   return getenv(env_var);
@@ -151,12 +152,14 @@ void run_generic(GenericCommand cmd) {
   char* exec = cmd.args[0];
   char** args = cmd.args;
 
-  // TODO: Remove warning silencers
+  // TODO: Remove warning silencers DONE!!
   (void) exec; // Silence unused variable warning
   (void) args; // Silence unused variable warning
 
-  // TODO: Implement run generic
+  // TODO: Implement run generic DONE!!
   //IMPLEMENT_ME();
+  execvp(exec, args);
+
 
   perror("ERROR: Failed to execute program");
 }
@@ -167,8 +170,8 @@ void run_echo(EchoCommand cmd) {
   // string is always NULL) list of strings.
   char** str = cmd.args;
 
-  // TODO: Remove warning silencers
-  (void) str; // Silence unused variable warning
+  // TODO: Remove warning silencers DONE!!
+  //(void) str; // Silence unused variable warning
 
   // TODO: Implement echo DONE!!
   //IMPLEMENT_ME();
@@ -189,7 +192,7 @@ void run_export(ExportCommand cmd) {
   const char* env_var = cmd.env_var;
   const char* val = cmd.val;
 
-  // TODO: Remove warning silencers
+  // TODO: Remove warning silencers DONE!!
   //(void) env_var; // Silence unused variable warning
   //(void) val;     // Silence unused variable warning
 
@@ -241,13 +244,13 @@ void run_kill(KillCommand cmd) {
 
   // TODO: Kill all processes associated with a background job
   //IMPLEMENT_ME();
-  kill(job_id, signal);
+  kill(job_id, signal); //(untested)
 }
 
 
 // Prints the current working directory to stdout
 void run_pwd() {
-  // TODO: Print the current working directory
+  // TODO: Print the current working directory DONE!!
   //IMPLEMENT_ME();
   bool should_free = true;
    char* pwd = get_current_directory(&should_free);
