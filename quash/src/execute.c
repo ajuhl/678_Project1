@@ -33,7 +33,8 @@ char* get_current_directory(bool* should_free) {
   //IMPLEMENT_ME();
   // Change this to true if necessary
   *should_free = false;
-  return getcwd(buf,sizeof(buf));
+  char* cwd = getcwd(buf,sizeof(buf));
+  return cwd;
 
 }
 
@@ -115,8 +116,10 @@ void run_echo(EchoCommand cmd) {
 
   // TODO: Implement echo DONE!!
   //IMPLEMENT_ME();
+  int i=0;
   while(cmd.args[i] != NULL){
       printf("%s ",cmd.args[i]);
+      i++;
     }
   printf("\n");
 
@@ -137,6 +140,7 @@ void run_export(ExportCommand cmd) {
   // TODO: Implement export.
   // HINT: This should be quite simple.
   //IMPLEMENT_ME();
+  setenv(env_var,val,1);
 }
 
 // Changes the current working directory
