@@ -29,12 +29,10 @@
 char* get_current_directory(bool* should_free) {
   // TODO: Get the current working directory. This will fix the prompt path.
   // HINT: This should be pretty simple
-  char buf[1024];
   //IMPLEMENT_ME();
   // Change this to true if necessary
-  *should_free = false;
-  char* cwd = getcwd(buf,sizeof(buf));
-  return cwd;
+  *should_free = true;
+    return (getcwd(NULL,0));
 
 }
 
@@ -134,10 +132,10 @@ void run_export(ExportCommand cmd) {
   const char* val = cmd.val;
 
   // TODO: Remove warning silencers
-  (void) env_var; // Silence unused variable warning
-  (void) val;     // Silence unused variable warning
+  //(void) env_var; // Silence unused variable warning
+  //(void) val;     // Silence unused variable warning
 
-  // TODO: Implement export.
+  // TODO: Implement export.DONE!!
   // HINT: This should be quite simple.
   //IMPLEMENT_ME();
   setenv(env_var,val,1);
@@ -168,6 +166,10 @@ void run_cd(CDCommand cmd) {
   // directory and optionally update OLD_PWD environment variable to be the old
   // working directory.
   //IMPLEMENT_ME();
+  bool should_free = true;
+   char* pwd = get_current_directory(&should_free);
+  setenv("PWD",pwd,1);
+  free(pwd);
 }
 
 // Sends a signal to all processes contained in a job
@@ -181,6 +183,7 @@ void run_kill(KillCommand cmd) {
 
   // TODO: Kill all processes associated with a background job
   //IMPLEMENT_ME();
+  kill(job_id, signal);
 }
 
 
@@ -188,7 +191,11 @@ void run_kill(KillCommand cmd) {
 void run_pwd() {
   // TODO: Print the current working directory
   //IMPLEMENT_ME();
-   printf(get_current_directory(false));
+  bool should_free = true;
+   char* pwd = get_current_directory(&should_free);
+   printf("%s\n", pwd);
+
+   free(pwd);
   // Flush the buffer before returning
   fflush(stdout);
 }
