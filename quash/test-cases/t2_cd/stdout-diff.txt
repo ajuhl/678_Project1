@@ -1,3 +1,4 @@
-3a4,5
-> /home/k882c352/eecs678/678_Project1/quash/test-cases/t2_cd/sandbox/dir3
+5c5
+< /home/k882c352/eecs678/678_Project1/quash/test-cases/t2_cd/sandbox 
+---
 > /home/k882c352/eecs678/678_Project1/quash/test-cases/t2_cd/sandbox/dir3

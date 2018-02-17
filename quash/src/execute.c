@@ -15,6 +15,7 @@
 #include "deque.h"
 #include "quash.h"
 #include <unistd.h>
+//#include <sys/utsname.h>
 
 // Remove this and all expansion calls to it
 /**
@@ -104,9 +105,42 @@ void check_jobs_bg_status() {
   // jobs. This function should remove jobs from the jobs queue once all
   // processes belonging to a job have completed.
   //IMPLEMENT_ME();
+	// size_t queue_length = length_job_deque(&Jobs);
+	//
+	// for(size_t i=0;i<queue_length;i++)
+	// {
+	// 	JOB curr = pop_front_job_deque(&Jobs);
+	// 	size_t pid_len = length_pid_deque(&curr.pid_queue);
+	//
+	// 	for(size_t j=0; j<pid_len; j++)
+	// 	{
+	// 		pid_t currentp = pop_front_pid_deque(&curr.pid_queue);
+	// 		int stat;
+	// 		pid_t returnp = waitpid(currentp, &stat, WNOHANG);
+	//
+	// 		if (returnp == -1)
+	// 		{
+	// 			perror("error!");
+	// 		}
+	// 		else if (returnp == 0)
+	// 		{
+	// 			push_back_pid_deque(&curr.job_id, currentp);
+	// 		}
+	// 		else if (returnp == currentp)
+	// 		{
+	// 			print_job_bg_complete(&curr.job_id, currentp, &curr.command);
+	// 		}
+	// 	}
+	// 	if (!length_pid_deque(&curr.pid_queue) == 0)
+	// 	{
+	// 		push_back_job_deque(&Jobs, curr);
+	// 	}
+	// }
+
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
-  // print_job_bg_complete(job_id, pid, cmd);
+  // print_job_bg_complete(job_id, pid, cmd); ^^^ this is above.
+
 }
 
 // Prints the job id number, the process id of the first process belonging to
@@ -223,6 +257,24 @@ void run_cd(CDCommand cmd) {
 void run_kill(KillCommand cmd) {
   int signal = cmd.sig;
   int job_id = cmd.job;
+
+	size_t queue_length = length_job_deque(&Jobs);
+	for (size_t i=0; i<queue_length; i++)
+	{
+		JOB current = pop_front_job_deque(&Jobs);
+		size_t pid_length = length_pid_deque(&current.pid_queue);
+
+		if (current.job_id==job_id)
+		{
+			for (size_t j=0; j<pid_length; j++)
+			{
+				pid_t temp = pop_front_pid_deque(&current.pid_queue);
+				kill(temp,signal);
+				push_back_pid_deque(&current.pid_queue, temp);
+			}
+		}
+		push_back_job_deque(&Jobs, current);
+	}
 
   // TODO: Remove warning silencers
   (void) signal; // Silence unused variable warning
@@ -377,9 +429,26 @@ void create_process(CommandHolder holder) {
   // TODO: Setup pipes, redirects, and new process
   //IMPLEMENT_ME();
 
-  parent_run_command(holder.cmd); // This should be done in the parent branch of
-                                  // a fork
-  child_run_command(holder.cmd); // This should be done in the child branch of a fork
+  // parent_run_command(holder.cmd); // This should be done in the parent branch of
+  //                                 // a fork
+  // child_run_command(holder.cmd); // This should be done in the child branch of a fork
+pid_t pid;
+pid = fork();
+
+if(pid == 0) //child
+{
+	child_run_command(holder.cmd);
+	exit(EXIT_SUCCESS);
+}
+else if (pid>0)//parent
+{
+	parent_run_command(holder.cmd);
+}
+else
+{
+	exit(EXIT_FAILURE);
+}
+
 }
 
 // Run a list of commands
@@ -396,7 +465,8 @@ void run_script(CommandHolder* holders) {
   }
 
   CommandType type;
-
+  ex_env env;
+__init_ex_env(&env);
   // Run all commands in the `holder` array
   for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i)
     create_process(holders[i]);
@@ -405,13 +475,32 @@ void run_script(CommandHolder* holders) {
     // Not a background Job
     // TODO: Wait for all processes under the job to complete
     //IMPLEMENT_ME();
+	while(!is_empty_pid_deque(&env.job.pid_queue))
+	{
+		int stat=0;
+		if(waitpid(pop_front_pid_deque(&env.job.pid_queue),stat,0) == -1)
+		{
+			exit(EXIT_FAILURE);
+		}
+	}
+	__destroy_ex_env(&env);
+
+
   }
   else {
+	  if(is_empty_pid_deque(&Jobs))
+	  {
+		  env.job.job_id =1;
+	  }
+	  else
+	  {
+		  env.job.job_id = peek_back_job_deque(&Jobs).job_id +1;
+	  }
     // A background job.
     // TODO: Push the new job to the job queue
     //IMPLEMENT_ME();
-
+	push_back_job_deque(&Jobs, env.job);
     // TODO: Once jobs are implemented, uncomment and fill the following line
-    // print_job_bg_start(job_id, pid, cmd);
+    print_job_bg_start(env.job.job_id, peek_front_pid_deque(&env.job.pid_queue), env.job.command);
   }
 }

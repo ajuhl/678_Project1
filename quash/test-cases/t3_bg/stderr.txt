@@ -1,5 +1,31 @@
-==1385== Memcheck, a memory error detector
-==1385== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
-==1385== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
-==1385== Command: /home/k882c352/eecs678/678_Project1/quash/quash
-==1385== 
+==11012== Memcheck, a memory error detector
+==11012== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
+==11012== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
+==11012== Command: /home/k882c352/eecs678/678_Project1/quash/quash
+==11012== 
+quash: src/execute.c:27: is_empty_pid_deque: Assertion `deq->data != NULL' failed.
+==11012== 
+==11012== Process terminating with default action of signal 6 (SIGABRT)
+==11012==    at 0x4E6F428: raise (raise.c:54)
+==11012==    by 0x4E71029: abort (abort.c:89)
+==11012==    by 0x4E67BD6: __assert_fail_base (assert.c:92)
+==11012==    by 0x4E67C81: __assert_fail (assert.c:101)
+==11012==    by 0x401A5B: is_empty_pid_deque (execute.c:27)
+==11012==    by 0x4042D1: run_script (execute.c:491)
+==11012==    by 0x401450: main (quash.c:132)
+==11012== 
+==11012== HEAP SUMMARY:
+==11012==     in use at exit: 17,750 bytes in 7 blocks
+==11012==   total heap usage: 13 allocs, 6 frees, 1,067,854 bytes allocated
+==11012== 
+==11012== LEAK SUMMARY:
+==11012==    definitely lost: 0 bytes in 0 blocks
+==11012==    indirectly lost: 0 bytes in 0 blocks
+==11012==      possibly lost: 0 bytes in 0 blocks
+==11012==    still reachable: 17,750 bytes in 7 blocks
+==11012==         suppressed: 0 bytes in 0 blocks
+==11012== Reachable blocks (those to which a pointer was found) are not shown.
+==11012== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==11012== 
+==11012== For counts of detected and suppressed errors, rerun with: -v
+==11012== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
