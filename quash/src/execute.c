@@ -10,20 +10,20 @@
 #include "execute.h"
 
 #include <stdio.h>
-
+#include <signal.h>
+#include "deque.h"
 #include "quash.h"
 #include <unistd.h>
-#include <dirent.h>
 
 // Remove this and all expansion calls to it
 /**
  * @brief Note calls to any function that requires implementation
  */
-#define IMPLEMENT_ME()
-  fprintf(stderr, "IMPLEMENT ME: %s(line %d): %s()\n", __FILE__, __LINE__, __FUNCTION__)
-
+//#define IMPLEMENT_ME()
+  //fprintf(stderr, "IMPLEMENT ME: %s(line %d): %s()\n", __FILE__, __LINE__, __FUNCTION__)
 IMPLEMENT_DEQUE_STRUCT(pid_deque, pid_t);
 IMPLEMENT_DEQUE(pid_deque, pid_t);
+
 
 /***************************************************************************
  * Structs
@@ -55,42 +55,30 @@ static JOB __new_job(){
 static void __remove_job(JOB job){
 	if(job.command != NULL)
 		free(job.command);
-			remove_pid_deque(&job.pid_queue);
+			destroy_pid_deque(&job.pid_queue);
 }
 
 static void __init_ex_env(ex_env* env){
 	assert(env != NULL);
-	__new_job(env->JOB)
+	env->job = __new_job();
 }
 
 static void __destroy_ex_env(ex_env* env){
 	assert (env != NULL);
-	__remove_job(e->JOB);
+	__remove_job(env->job);
 }
-
 /***************************************************************************
  * Interface Functions
  ***************************************************************************/
 
 // Return a string containing the current working directory.
 char* get_current_directory(bool* should_free) {
-  // TODO: DONE*** Get the current working directory. This will fix the prompt path.
+  // TODO: Get the current working directory. This will fix the prompt path.
   // HINT: This should be pretty simple
   //IMPLEMENT_ME();
   // Change this to true if necessary
-
-	long path = fpathconf(0,_PC_PATH_MAX);
-	if (path<0)
-	{
-		path = 1024;
-	}
-
   *should_free = true;
-
-	char *cwd = malloc(path); //allocates 1024 bytes of memory
-	getcwd(cwd, path); //gets pwd
-
-    return (cwd);
+    return (getcwd(NULL,0));
 
 }
 
@@ -98,12 +86,12 @@ char* get_current_directory(bool* should_free) {
 const char* lookup_env(const char* env_var) {
   // TODO: Lookup environment variables. This is required for parser to be able
   // to interpret variables from the command line and display the prompt
-  // correctly DONE!!
+  // correctly
   // HINT: This should be pretty simple
 
   //IMPLEMENT_ME();
 
-  // TODO: Remove warning silencers DONE!!
+  // TODO: Remove warning silencers
 //  (void) env_var; // Silence unused variable warning
 
   return getenv(env_var);
@@ -115,7 +103,6 @@ void check_jobs_bg_status() {
   // jobs. This function should remove jobs from the jobs queue once all
   // processes belonging to a job have completed.
   //IMPLEMENT_ME();
-
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
   // print_job_bg_complete(job_id, pid, cmd);
@@ -152,15 +139,13 @@ void run_generic(GenericCommand cmd) {
   char* exec = cmd.args[0];
   char** args = cmd.args;
 
-  // TODO: Remove warning silencers DONE!!
-  (void) exec; // Silence unused variable warning
-  (void) args; // Silence unused variable warning
+  // TODO: Remove warning silencers
+  //(void) exec; // Silence unused variable warning
+  //(void) args; // Silence unused variable warning
 
-  // TODO: Implement run generic DONE!!
+  // TODO: Implement run generic
   //IMPLEMENT_ME();
-  execvp(exec, args);
-
-
+execvp(exec, args);
   perror("ERROR: Failed to execute program");
 }
 
@@ -170,8 +155,8 @@ void run_echo(EchoCommand cmd) {
   // string is always NULL) list of strings.
   char** str = cmd.args;
 
-  // TODO: Remove warning silencers DONE!!
-  //(void) str; // Silence unused variable warning
+  // TODO: Remove warning silencers
+  (void) str; // Silence unused variable warning
 
   // TODO: Implement echo DONE!!
   //IMPLEMENT_ME();
@@ -192,7 +177,7 @@ void run_export(ExportCommand cmd) {
   const char* env_var = cmd.env_var;
   const char* val = cmd.val;
 
-  // TODO: Remove warning silencers DONE!!
+  // TODO: Remove warning silencers
   //(void) env_var; // Silence unused variable warning
   //(void) val;     // Silence unused variable warning
 
@@ -225,7 +210,7 @@ void run_cd(CDCommand cmd) {
 
   // TODO: Update the PWD environment variable to be the new current working
   // directory and optionally update OLD_PWD environment variable to be the old
-  // working directory. DONE!!
+  // working directory.
   //IMPLEMENT_ME();
   bool should_free = true;
    char* pwd = get_current_directory(&should_free);
@@ -244,13 +229,13 @@ void run_kill(KillCommand cmd) {
 
   // TODO: Kill all processes associated with a background job
   //IMPLEMENT_ME();
-  kill(job_id, signal); //(untested)
+  kill(job_id, signal);
 }
 
 
 // Prints the current working directory to stdout
 void run_pwd() {
-  // TODO: Print the current working directory DONE!!
+  // TODO: Print the current working directory
   //IMPLEMENT_ME();
   bool should_free = true;
    char* pwd = get_current_directory(&should_free);
