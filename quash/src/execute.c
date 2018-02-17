@@ -7,20 +7,28 @@
  * @note As you add things to this file you may want to change the method signature
  */
 
+ //https://github.com/hariramanan64/quash/blob/master/src/execute.c
+//link to helpful repo ^^
 #include "execute.h"
 
 #include <stdio.h>
 
 #include "quash.h"
+#include "deque.h"
 #include <unistd.h>
 #include <dirent.h>
+
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <signal.h>
 
 // Remove this and all expansion calls to it
 /**
  * @brief Note calls to any function that requires implementation
  */
-#define IMPLEMENT_ME()
-  fprintf(stderr, "IMPLEMENT ME: %s(line %d): %s()\n", __FILE__, __LINE__, __FUNCTION__)
+// #define IMPLEMENT_ME()
+//   fprintf(stderr, "IMPLEMENT ME: %s(line %d): %s()\n", __FILE__, __LINE__, __FUNCTION__)
 
 IMPLEMENT_DEQUE_STRUCT(pid_deque, pid_t);
 IMPLEMENT_DEQUE(pid_deque, pid_t);
@@ -60,12 +68,12 @@ static void __remove_job(JOB job){
 
 static void __init_ex_env(ex_env* env){
 	assert(env != NULL);
-	__new_job(env->JOB)
+	__new_job(env->job);
 }
 
 static void __destroy_ex_env(ex_env* env){
 	assert (env != NULL);
-	__remove_job(e->JOB);
+	__remove_job(env->job);
 }
 
 /***************************************************************************
@@ -116,6 +124,38 @@ void check_jobs_bg_status() {
   // processes belonging to a job have completed.
   //IMPLEMENT_ME();
 
+  size_t queue_length = length_job_deque(&Jobs);
+
+	for (size_t i=0; i<queue_length; i++)
+	{
+		JOB current = pop_front_job_deque(&Jobs);
+		size_t pid_queue_length = length_pid_deque(&current.pid_queue);
+		for (size_t j=0; j<pid_queue_length; j++)
+		{
+			pid_t currentp = pop_front_pid_deque(&current.pid_queue);
+			int status;
+			pid_t returnp = waitpid(currentp,&status,WNOHANG);
+
+			if (returnp == 0)
+			{
+				push_back_pid_deque(&current.pid_queue, currentp);
+			}
+			else if (returnp == currentp)
+			{
+				print_job_bg_complete(&current.job_id, currentp, &current.command);
+			}
+			else
+			{
+				perror("ERROR");
+			}
+
+		}
+
+		if (!length_pid_deque(&current.pid_queue) ==0)
+		{
+			push_back_job_deque(&Jobs, current);
+		}
+	}
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
   // print_job_bg_complete(job_id, pid, cmd);
