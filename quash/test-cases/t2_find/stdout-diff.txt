@@ -1,3 +1,0 @@
-0a1,2
-> /home/k882c352/eecs678/678_Project1/quash/test-cases/t2_find/sandbox/dir3/dir3-1/valgrind_expected.txt
-> /home/k882c352/eecs678/678_Project1/quash/test-cases/t2_find/sandbox/dir3/valgrind_expected.txt

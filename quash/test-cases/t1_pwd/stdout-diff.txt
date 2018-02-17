@@ -1,4 +1,0 @@
-1c1
-<  e
----
-> /home/k882c352/eecs678/678_Project1/quash/test-cases/t1_pwd/sandbox

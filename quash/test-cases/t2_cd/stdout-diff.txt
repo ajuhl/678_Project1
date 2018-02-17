@@ -1,9 +1,3 @@
-1,2c1,5
-<  e
-< /home/k882c352/eecs678/678_Project1/quash/test-cases/t2_cd/sandbox 
----
-> dir3-1
-> dir3-2
-> valgrind_expected.txt
+3a4,5
 > /home/k882c352/eecs678/678_Project1/quash/test-cases/t2_cd/sandbox/dir3
 > /home/k882c352/eecs678/678_Project1/quash/test-cases/t2_cd/sandbox/dir3
