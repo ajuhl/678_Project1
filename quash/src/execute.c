@@ -15,6 +15,7 @@
 #include "deque.h"
 #include "quash.h"
 #include <unistd.h>
+#include <sys/stat.h>
 //#include <sys/utsname.h>
 
 // Remove this and all expansion calls to it
@@ -227,19 +228,19 @@ void run_cd(CDCommand cmd) {
   // Get the directory name
   const char* dir = cmd.dir;
   int ret;
-  // Check if the directory is valid
-  if (dir == NULL) {
-    ret = chdir(getenv("HOME"));
-    //perror("ERROR: Failed to resolve path");
-  }
-  else{
-    ret = chdir(dir);
-  }
 
-  if(ret == -1){
-    perror("ERROR: Failed to resolve path");
-  }
-  return;
+	  // Check if the directory is valid
+	  if (dir == NULL) {
+	    //ret = chdir(getenv("HOME"));
+	    perror("ERROR: Failed to resolve path");
+
+	  }
+
+	    ret = chdir(dir);
+		setenv("OLD_PWD", lookup_env("PWD"), 1);
+		setenv("PWD", dir, 1);
+
+
 
   // TODO: Change directory DONE!!
 
@@ -247,10 +248,10 @@ void run_cd(CDCommand cmd) {
   // directory and optionally update OLD_PWD environment variable to be the old
   // working directory.
   //IMPLEMENT_ME();
-  bool should_free = true;
-   char* pwd = get_current_directory(&should_free);
-  setenv("PWD",pwd,1);
-  free(pwd);
+//   bool should_free = true;
+//    char* pwd = get_current_directory(&should_free);
+//   setenv("PWD",pwd,1);
+//   free(pwd);
 }
 
 // Sends a signal to all processes contained in a job

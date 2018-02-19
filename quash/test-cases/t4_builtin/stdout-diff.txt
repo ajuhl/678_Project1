@@ -1,9 +1,8 @@
-1,2c1,3
+1,3c1,3
 < /home/k882c352/eecs678/678_Project1/quash/test-cases/t4_builtin/sandbox
 < /home/k882c352/eecs678/678_Project1/quash/test-cases/t4_builtin/sandbox
+< hello\\n 
 ---
 > sandbox
 > sandbox
 > hello
-4d4
-< hello\\n 
