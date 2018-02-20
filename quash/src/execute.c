@@ -514,9 +514,8 @@ __init_ex_env(&env);
     // TODO: Wait for all processes under the job to complete
     //IMPLEMENT_ME();
 				int stat=0;
-	while(!is_empty_pid_deque(&env.job.pid_queue))
+	if(!is_empty_pid_deque(&env.job.pid_queue))
 	{
-
 		waitpid(pop_front_pid_deque(&env.job.pid_queue),&stat,0);
 	}
 	__destroy_ex_env(&env);
