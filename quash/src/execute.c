@@ -454,16 +454,25 @@ else
 
 // Run a list of commands
 void run_script(CommandHolder* holders) {
-  if (holders == NULL)
-    return;
+  // bool first = true;
+  // if (holders == NULL)
+  //   {
+  // return;
+  //
+  //
+  // f (first == true)
+  //
+  // Jobs = new_destructable_job_deque(2, __remove_job);
+  // first = false;
+  //
 
   check_jobs_bg_status();
 
-  if (get_command_holder_type(holders[0]) == EXIT &&
-      get_command_holder_type(holders[1]) == EOC) {
-    end_main_loop();
-    return;
-  }
+  if (get_command_holder_type(holders[0]) == EXIT && get_command_holder_type(holders[1]) == EOC)
+	  {
+    	end_main_loop();
+    	return;
+	}
 
   CommandType type;
   ex_env env;
@@ -479,7 +488,7 @@ __init_ex_env(&env);
 	while(!is_empty_pid_deque(&env.job.pid_queue))
 	{
 		int stat=0;
-		if(waitpid(pop_front_pid_deque(&env.job.pid_queue),stat,0) == -1)
+		if(waitpid(pop_front_pid_deque(&env.job.pid_queue),&stat,0) == -1)
 		{
 			exit(EXIT_FAILURE);
 		}
