@@ -1,14 +1,23 @@
-==2170== Memcheck, a memory error detector
-==2170== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
-==2170== Using Valgrind-3.9.0 and LibVEX; rerun with -h for copyright info
-==2170== Command: /home/k882c352/eecs678/678_Project1/quash/quash
-==2170== 
-==2170== 
-==2170== HEAP SUMMARY:
-==2170==     in use at exit: 0 bytes in 0 blocks
-==2170==   total heap usage: 10 allocs, 10 frees, 19,075 bytes allocated
-==2170== 
-==2170== All heap blocks were freed -- no leaks are possible
-==2170== 
-==2170== For counts of detected and suppressed errors, rerun with: -v
-==2170== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
+==40149== Memcheck, a memory error detector
+==40149== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
+==40149== Using Valgrind-3.9.0 and LibVEX; rerun with -h for copyright info
+==40149== Command: /home/k882c352/eecs678/678_Project1/quash/quash
+==40149== 
+==40434== 
+==40434== HEAP SUMMARY:
+==40434==     in use at exit: 0 bytes in 0 blocks
+==40434==   total heap usage: 12 allocs, 12 frees, 23,239 bytes allocated
+==40434== 
+==40434== All heap blocks were freed -- no leaks are possible
+==40434== 
+==40434== For counts of detected and suppressed errors, rerun with: -v
+==40434== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
+==40149== 
+==40149== HEAP SUMMARY:
+==40149==     in use at exit: 0 bytes in 0 blocks
+==40149==   total heap usage: 11 allocs, 11 frees, 19,083 bytes allocated
+==40149== 
+==40149== All heap blocks were freed -- no leaks are possible
+==40149== 
+==40149== For counts of detected and suppressed errors, rerun with: -v
+==40149== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)

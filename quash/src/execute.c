@@ -1,4 +1,3 @@
-
 /**
  * @file execute.c
  *
@@ -14,6 +13,7 @@
 #include <signal.h>
 #include "deque.h"
 #include "quash.h"
+#include "list.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
@@ -26,52 +26,55 @@
  */
 //#define IMPLEMENT_ME()
   //fprintf(stderr, "IMPLEMENT ME: %s(line %d): %s()\n", __FILE__, __LINE__, __FUNCTION__)
-IMPLEMENT_DEQUE_STRUCT(pid_deque, pid_t);
-IMPLEMENT_DEQUE(pid_deque, pid_t);
 
 
+static int kill_sig = -2;
 /***************************************************************************
  * Structs
  ***************************************************************************/
 
 typedef struct JOB {
 	int job_id;
+	List pidl;
 	char* command;
-	pid_deque pid_queue;
+	int jpipe[2][2];
+	int prev_p;
+	int next_p;
 } JOB;
 
-IMPLEMENT_DEQUE_STRUCT(job_deque, JOB);
-IMPLEMENT_DEQUE(job_deque, JOB);
+List joblist = {NULL, NULL, 0};
 
-job_deque Jobs; //creates queue of Jobs
-
-typedef struct ex_env { //execution enviroment
-	int num;
-	int pfd[2][2];
-	JOB job;
-} ex_env;
-
-static JOB __new_job(){
-	return (JOB) {
-		-0, get_command_string(), new_pid_deque(1),
-	};
+void remove_j(JOB* job)
+{
+	assert(job != NULL);
+	if (job->command)
+	{
+		free(job->command);
+	}
+	free(job);
 }
 
-static void __remove_job(JOB job){
-		free(job.command);
-		destroy_pid_deque(&job.pid_queue);
+void kill_j_w_p(JOB* job)
+{
+	assert(job != NULL);
+	pid_t pid;
+	while(!empty(&job->pidl))
+	{
+		pid = *(pid_t*)peek_back(&job->pidl);
+		if(kill(pid, kill_sig) == -1)
+		{
+			fprintf(stderr, "HOUSTON WE HAVE A PROBLEM\n\n jk, but process %d running under job %d failed to be killed.\n", job->job_id, pid);
+		}
+
+	}
+	if(job->command)
+	{
+		free(job->command);
+	}
+	free(job);
 }
 
-static void __init_ex_env(ex_env* env){
-	assert(env != NULL);
-	env->job = __new_job();
-	env->num = 0;
-}
 
-static void __destroy_ex_env(ex_env* env){
-	assert (env != NULL);
-	__remove_job(env->job);
-}
 /***************************************************************************
  * Interface Functions
  ***************************************************************************/
@@ -108,38 +111,40 @@ void check_jobs_bg_status() {
   // jobs. This function should remove jobs from the jobs queue once all
   // processes belonging to a job have completed.
   //IMPLEMENT_ME();
-	// size_t queue_length = length_job_deque(&Jobs);
-	//
-	// for(size_t i=0;i<queue_length;i++)
-	// {
-	// 	JOB curr = pop_front_job_deque(&Jobs);
-	// 	size_t pid_len = length_pid_deque(&curr.pid_queue);
-	//
-	// 	for(size_t j=0; j<pid_len; j++)
-	// 	{
-	// 		pid_t currentp = pop_front_pid_deque(&curr.pid_queue);
-	// 		int stat;
-	// 		pid_t returnp = waitpid(currentp, &stat, WNOHANG);
-	//
-	// 		if (returnp == -1)
-	// 		{
-	// 			perror("error!");
-	// 		}
-	// 		else if (returnp == 0)
-	// 		{
-	// 			push_back_pid_deque(&curr.job_id, currentp);
-	// 		}
-	// 		else if (returnp == currentp)
-	// 		{
-	// 			print_job_bg_complete(&curr.job_id, currentp, &curr.command);
-	// 		}
-	// 	}
-	// 	if (!is_empty_pid_deque(&curr.pid_queue))
-	// 	{
-	// 		push_back_job_deque(&Jobs, curr);
-	// 	}
-	// }
+	int status;
+	bool all_done;
+	pid_t pid;
+	pid_t pback;
+	pid_t pstate;
+	Node *pid_next;
+	Node *job_next;
 
+	for(Node *job_n = joblist.back; job_n != NULL;)
+	{
+		all_done = true;
+		pback = *(pid_t*)peek_back(&((JOB*)peek(job_n))->pidl);
+
+		for (Node* pid_n = ((JOB*)peek(job_n))->pidl.back; pid_n != NULL;)
+		{
+			pid = *(pid_t*)peek(pid_n);
+			pstate = waitpid(pid, &status, WNOHANG);
+			pid_next = pid_n->next;
+			if(pstate == pid)
+			{
+				delete_node(&((JOB*)peek(job_n))->pidl, pid_n, &free);
+			}
+			else if(pstate == -1)
+			{
+				delete_node(&((JOB*)peek(job_n))->pidl, pid_n, &free);
+				fprintf(stderr, "HOUSTON WE HAVE A PROBLEM\n\n jk, but child process %d  has an error :(\n", ((JOB*)peek(job_n))->job_id);
+			}
+			else
+			{
+				all_done = false;
+			}
+			pid_n = pid_next;
+		}
+	}
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
   // print_job_bg_complete(job_id, pid, cmd); ^^^ this is above.
@@ -165,9 +170,9 @@ void print_job_bg_complete(int job_id, pid_t pid, const char* cmd) {
   print_job(job_id, pid, cmd);
 }
 
-static void __print_jobs_helper(JOB j){
-  print_job(j.job_id, peek_front_pid_deque(&j.pid_queue), j.command);
-}
+// static void __print_jobs_helper(JOB j){
+//   print_job(job_id, pid, cmd);
+// }
 /***************************************************************************
  * Functions to process commands
  ***************************************************************************/
@@ -257,27 +262,27 @@ void run_cd(CDCommand cmd) {
 
 // Sends a signal to all processes contained in a job
 void run_kill(KillCommand cmd) {
-  int signal = cmd.sig;
-  int job_id = cmd.job;
-	printf("run_kill Test1");
-	fflush(stdout);
-	size_t queue_length = length_job_deque(&Jobs);
-	for (size_t i=0; i<queue_length; i++)
-	{
-		JOB current = pop_front_job_deque(&Jobs);
-		size_t pid_length = length_pid_deque(&current.pid_queue);
-
-		if (current.job_id==job_id)
-		{
-			for (size_t j=0; j<pid_length; j++)
-			{
-				pid_t temp = pop_front_pid_deque(&current.pid_queue);
-				kill(temp,signal);
-				push_back_pid_deque(&current.pid_queue, temp);
-			}
-		}
-		push_back_job_deque(&Jobs, current);
-	}
+  // int signal = cmd.sig;
+  // int job_id = cmd.job;
+  // rintf("run_kill Test1");
+  // flush(stdout);
+  // ize_t queue_length = length_job_deque(&Jobs);
+  // or (size_t i=0; i<queue_length; i++)
+  //
+  // JOB current = pop_front_job_deque(&Jobs);
+  // size_t pid_length = length_pid_deque(&current.pid_queue);
+  //
+  // if (current.job_id==job_id)
+  // {
+  // 	for (size_t j=0; j<pid_length; j++)
+  // 	{
+  // 		pid_t temp = pop_front_pid_deque(&current.pid_queue);
+  // 		kill(temp,signal);
+  // 		push_back_pid_deque(&current.pid_queue, temp);
+  // 	}
+  // }
+  // push_back_job_deque(&Jobs, current);
+  //
 
   // TODO: Remove warning silencers
   //(void) signal; // Silence unused variable warning
@@ -306,8 +311,10 @@ void run_pwd() {
 void run_jobs() {
   // TODO: Print background jobs
   //IMPLEMENT_ME();
-
-	apply_job_deque(&Jobs,__print_jobs_helper);
+for (Node* job_n = joblist.back; job_n != NULL; job_n = job_n->next)
+{
+	//print_job(((JOB*)peek(job_n))->job_id, *(pid_t*)peek_back(&((JOB*)peek(job_n))->pid_list), ((JOB*)peek(job_n))->command);
+}
   // Flush the buffer before returning
   fflush(stdout);
 }
@@ -493,31 +500,12 @@ else if (pid>0)//parent
 
 // Run a list of commands
 void run_script(CommandHolder* holders) {
-
-  // bool first = true;
-  // if (holders == NULL)
-  //   {
-  // return;
-  //
-  //
-  // f (first == true)
-  //
-  // Jobs = new_destructable_job_deque(2, __remove_job);
-  // first = false;
-  //
-
   if (holders == NULL)
     return;
-
-  check_jobs_bg_status();
-
-
-  if (get_command_holder_type(holders[0]) == EXIT && get_command_holder_type(holders[1]) == EOC)
-	  {
-    	end_main_loop();
-    	return;
+	if(!empty(&joblist))
+	{
+		check_jobs_bg_status();
 	}
-
 
   if (get_command_holder_type(holders[0]) == EXIT &&
       get_command_holder_type(holders[1]) == EOC) {
@@ -525,48 +513,45 @@ void run_script(CommandHolder* holders) {
     return;
   }
 
+	JOB* job = malloc(sizeof(JOB));
+	init_job(job);
+
   CommandType type;
-  ex_env env;
-__init_ex_env(&env);
+
   // Run all commands in the `holder` array
   for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i)
-    create_process(holders[i], &env);
+  {
+    create_process(holders[i], job);
+  }
 
   if (!(holders[0].flags & BACKGROUND)) {
     // Not a background Job
     // TODO: Wait for all processes under the job to complete
     //IMPLEMENT_ME();
-				int stat=0;
-	if(!is_empty_pid_deque(&env.job.pid_queue))
+	int status;
+	if(;!empty(&job->pidl); remove_back(&job->pidl, &free))
 	{
-
-		int stat=0;
-		if(waitpid(pop_front_pid_deque(&env.job.pid_queue),&stat,0) == -1)
+		if (waitpid(*(pid_t*)peek_back(&job->pidl),&status,0)==-1)
 		{
-			exit(EXIT_FAILURE);
+			fprintf(stderr, "OH NO! Process %d running under job %d has an error\n", job->job_id, pid);
 		}
 
-	//	waitpid(pop_front_pid_deque(&env.job.pid_queue),&stat,0);
 	}
-	__destroy_ex_env(&env);
-
+	remove_j(job);
 
   }
   else {
-	  if(is_empty_job_deque(&Jobs))
+	  if(!empty(&joblist))
 	  {
-		  env.job.job_id =1;
+		  job->job_id = ((JOB*)peek_front(&joblist))->job_id+1;
 	  }
-	  else
-	  {
-		  env.job.job_id = peek_back_job_deque(&Jobs).job_id +1;
-	  }
+	  add_front(&joblist, job);
+
     // A background job.
     // TODO: Push the new job to the job queue
     //IMPLEMENT_ME();
-	push_back_job_deque(&Jobs, env.job);
     // TODO: Once jobs are implemented, uncomment and fill the following line
-    print_job_bg_start(env.job.job_id, peek_front_pid_deque(&env.job.pid_queue), env.job.command);
+    print_job_bg_start(job->job_id, *(pid_t*)peek_back(&job->pidl), job->command);
   }
 
 }
