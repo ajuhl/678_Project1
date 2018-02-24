@@ -447,6 +447,7 @@ void create_process(CommandHolder holder, JOB* job) {
   // parent_run_command(holder.cmd); // This should be done in the parent branch of
   //                                 // a fork
   // child_run_command(holder.cmd); // This should be done in the child branch of a fork
+int fileNum;
 int write = job->num % 2;
 int read = (job->num-1) % 2;
 pipe(job->pfd[write]);
@@ -461,32 +462,37 @@ if(pid == 0){
 	if(p_in){
 		//printf("create process pid ==0 p_in\n");
 		//fflush(stdout);
+		close(job->pfd[read][1]);
 		dup2(job->pfd[read][0], STDIN_FILENO);
 		close(job->pfd[read][0]);
 	}
 	if (p_out){
 		//printf("create process pid==0 p_out\n");
 		//fflush(stdout);
+		close(job->pfd[write][0]);
 		dup2(job->pfd[write][1], STDOUT_FILENO);
 		close(job->pfd[write][1]);
 	}
 	if (r_in) {
 		//printf("create process pid==0 r_in\n");
 		//fflush(stdout);
-		dup2(fileno(fopen(holder.redirect_in,"r")), STDIN_FILENO);
-		close(fileno(fopen(holder.redirect_in,"r")));
+		fileNum = fileno(fopen(holder.redirect_in,"r"));
+		dup2(fileNum, STDIN_FILENO);
+		close(fileNum);
 	}
 	if (r_out && r_app){
 		//printf("create process pid==0 r_out && r_app\n");
 		//fflush(stdout);
-		dup2(fileno(fopen(holder.redirect_out, "a")), STDOUT_FILENO);
-		close(fileno(fopen(holder.redirect_out, "a")));
+		fileNum = fileno(fopen(holder.redirect_out, "a"));
+		dup2(fileNum, STDOUT_FILENO);
+		close(fileNum);
 
 	}else if(r_out && !r_app){
 		//printf("create process pid==0 r_out && !r_app\n");
 		//fflush(stdout);
-		dup2(fileno(fopen(holder.redirect_out, "w")), STDOUT_FILENO);
-		close(fileno(fopen(holder.redirect_out, "w")));
+		fileNum = fileno(fopen(holder.redirect_out, "w"));
+		dup2(fileNum, STDOUT_FILENO);
+		close(fileNum);
 	}
   remove_job(job);
 	//printf("create process pid==0 remove\n");
