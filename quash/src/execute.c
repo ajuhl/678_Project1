@@ -101,7 +101,6 @@ void check_jobs_bg_status() {
 		job_current = pop_front_job_deque(&Jobs);
 		num_of_processes = length_pid_deque(&job_current.pid_queue);
 		pfront = peek_front_pid_deque(&job_current.pid_queue);
-
 		for(size_t j=0; j<num_of_processes; j++){
 			pid = pop_front_pid_deque(&job_current.pid_queue);
 			pstate = waitpid(pid, &status, WNOHANG);
@@ -112,7 +111,6 @@ void check_jobs_bg_status() {
 				assert(pstate == pid);
 			}
 		}
-
 	 if(!is_empty_pid_deque(&job_current.pid_queue)){
 			push_back_job_deque(&Jobs, job_current);
 	 }
@@ -121,7 +119,6 @@ void check_jobs_bg_status() {
 		 destroy_pid_deque(&job_current.pid_queue);
 		 free(job_current.command);
 	 }
-
 	}
 }
 
@@ -145,7 +142,7 @@ void print_job_bg_complete(int job_id, pid_t pid, const char* cmd) {
   print_job(job_id, pid, cmd);
 }
 
-static void __print_jobs_helper(JOB j){
+static void print_jobs_helper(JOB j){
   print_job(j.job_id, peek_front_pid_deque(&j.pid_queue), j.command);
 }
 /***************************************************************************
@@ -234,22 +231,24 @@ void run_kill(KillCommand cmd) {
   int signal = cmd.sig;
   int job_id = cmd.job;
 	size_t queue_length = length_job_deque(&Jobs);
+	size_t pid_length;
+	pid_t pid;
+	JOB job_current;
 
 	for (size_t i=0; i<queue_length; i++)
 	{
-		JOB current = pop_front_job_deque(&Jobs);
-		size_t pid_length = length_pid_deque(&current.pid_queue);
-
-		if (current.job_id==job_id)
+		job_current = pop_front_job_deque(&Jobs);
+		pid_length = length_pid_deque(&job_current.pid_queue);
+		if (job_current.job_id==job_id)
 		{
 			for (size_t j=0; j<pid_length; j++)
 			{
-				pid_t temp = pop_front_pid_deque(&current.pid_queue);
-				kill(temp,signal);
-				push_back_pid_deque(&current.pid_queue, temp);
+				pid = pop_front_pid_deque(&job_current.pid_queue);
+				kill(pid,signal);
+				push_back_pid_deque(&job_current.pid_queue, pid);
 			}
 		}
-		push_back_job_deque(&Jobs, current);
+		push_back_job_deque(&Jobs, job_current);
 	}
 
   // TODO: Remove warning silencers
@@ -266,10 +265,9 @@ void run_kill(KillCommand cmd) {
 void run_pwd() {
   // TODO: Print the current working directory
   //IMPLEMENT_ME();
-  bool should_free = true;
+   bool should_free = true;
    char* pwd = get_current_directory(&should_free);
    printf("%s\n", pwd);
-
    free(pwd);
   // Flush the buffer before returning
   fflush(stdout);
@@ -279,8 +277,7 @@ void run_pwd() {
 void run_jobs() {
   // TODO: Print background jobs
   //IMPLEMENT_ME();
-
-	apply_job_deque(&Jobs,__print_jobs_helper);
+	apply_job_deque(&Jobs,print_jobs_helper);
   // Flush the buffer before returning
   fflush(stdout);
 }
@@ -482,7 +479,7 @@ void run_script(CommandHolder* holders) {
   }
   CommandType type;
   JOB job;
-init_job(&job);
+  init_job(&job);
   // Run all commands in the `holder` array
   for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i)
     create_process(holders[i], &job);
