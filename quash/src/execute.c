@@ -11,17 +11,10 @@
 
 
 #include "execute.h"
-
 #include <stdio.h>
-#include <signal.h>
 #include "deque.h"
 #include "quash.h"
-#include <unistd.h>
-#include <fcntl.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
-//#include <sys/utsname.h>
-
 // Remove this and all expansion calls to it
 /**
  * @brief Note calls to any function that requires implementation
@@ -31,11 +24,6 @@
 
 IMPLEMENT_DEQUE_STRUCT(pid_deque, pid_t);
 IMPLEMENT_DEQUE(pid_deque, pid_t);
-
-
-/***************************************************************************
- * Structs
- ***************************************************************************/
 
 typedef struct JOB {
 	int num;
@@ -187,7 +175,6 @@ void run_echo(EchoCommand cmd) {
   // Print an array of strings. The args array is a NULL terminated (last
   // string is always NULL) list of strings.
   //char** str = cmd.args;
-
   // TODO: Remove warning silencers
   //(void) str; // Silence unused variable warning
 
@@ -219,7 +206,6 @@ void run_export(ExportCommand cmd) {
   //IMPLEMENT_ME();
   setenv(env_var,val,1);
 }
-
 // Changes the current working directory
 void run_cd(CDCommand cmd) {
   // Get the directory name
@@ -227,15 +213,11 @@ void run_cd(CDCommand cmd) {
 	char* pwd = realpath(dir, NULL);
   // Check if the directory is valid
   if (dir == NULL) {
-   // ret = chdir(getenv("HOME"));
     perror("ERROR: Failed to resolve path");
   }
-
 	  chdir(pwd);
 		setenv("OLD_PWD", lookup_env("PWD"), 1);
 		setenv("PWD",pwd, 1);
-
-
 
   // TODO: Change directory DONE!!
 
@@ -251,9 +233,8 @@ void run_cd(CDCommand cmd) {
 void run_kill(KillCommand cmd) {
   int signal = cmd.sig;
   int job_id = cmd.job;
-	//printf("run_kill Test1");
-	//fflush(stdout);
 	size_t queue_length = length_job_deque(&Jobs);
+
 	for (size_t i=0; i<queue_length; i++)
 	{
 		JOB current = pop_front_job_deque(&Jobs);
@@ -321,30 +302,20 @@ void run_jobs() {
  */
 void child_run_command(Command cmd) {
   CommandType type = get_command_type(cmd);
-	//printf("child_run_command test\n");
-	//fflush(stdout);
   switch (type) {
   case GENERIC:
-	  //printf("child_run_command GENERIC\n");
-	  //fflush(stdout);
 	  run_generic(cmd.generic);
     break;
 
   case ECHO:
-	  //printf("child_run_command ECHO\n");
-	  //fflush(stdout);
     run_echo(cmd.echo);
     break;
 
   case PWD:
-	  //printf("child_run_command PWD\n");
-	  //fflush(stdout);
     run_pwd();
     break;
 
   case JOBS:
-	  //printf("child_run_command JOBS\n");
-	  //fflush(stdout);
     run_jobs();
     break;
 
@@ -373,24 +344,16 @@ void child_run_command(Command cmd) {
  */
 void parent_run_command(Command cmd) {
   CommandType type = get_command_type(cmd);
-	//printf("parent_run_command test\n");
-	//fflush(stdout);
   switch (type) {
   case EXPORT:
-	  //printf("parent_run_command EXPORT");
-	  //fflush(stdout);
     run_export(cmd.export);
     break;
 
   case CD:
-	  //printf("parent_run_command CD\n");
-	  //fflush(stdout);
     run_cd(cmd.cd);
     break;
 
   case KILL:
-	  //printf("parent_run_command KILL\n");
-	  //fflush(stdout);
     run_kill(cmd.kill);
     break;
 
@@ -423,9 +386,6 @@ void parent_run_command(Command cmd) {
  * @sa Command CommandHolder
  */
 void create_process(CommandHolder holder, JOB* job) {
-	//printf("create process\n");
-	//fflush(stdout);
-
   // Read the flags field from the parser
   bool p_in  = holder.flags & PIPE_IN;
   bool p_out = holder.flags & PIPE_OUT;
@@ -451,75 +411,62 @@ int fileNum;
 int write = job->num % 2;
 int read = (job->num-1) % 2;
 pipe(job->pfd[write]);
-//printf("create process pipe\n");
-//fflush(stdout);
 pid_t pid;
 pid = fork();
 
 if(pid == 0){
-	//printf("create process pid==0\n");
-	//fflush(stdout);
-	if(p_in){
-		//printf("create process pid ==0 p_in\n");
-		//fflush(stdout);
-		close(job->pfd[read][1]);
-		dup2(job->pfd[read][0], STDIN_FILENO);
-		close(job->pfd[read][0]);
-	}
-	if (p_out){
-		//printf("create process pid==0 p_out\n");
-		//fflush(stdout);
-		close(job->pfd[write][0]);
-		dup2(job->pfd[write][1], STDOUT_FILENO);
-		close(job->pfd[write][1]);
-	}
+
 	if (r_in) {
-		//printf("create process pid==0 r_in\n");
-		//fflush(stdout);
 		fileNum = fileno(fopen(holder.redirect_in,"r"));
 		dup2(fileNum, STDIN_FILENO);
 		close(fileNum);
 	}
-	if (r_out && r_app){
-		//printf("create process pid==0 r_out && r_app\n");
-		//fflush(stdout);
+	if (r_out&&r_app){
 		fileNum = fileno(fopen(holder.redirect_out, "a"));
 		dup2(fileNum, STDOUT_FILENO);
 		close(fileNum);
-
-	}else if(r_out && !r_app){
-		//printf("create process pid==0 r_out && !r_app\n");
-		//fflush(stdout);
+		}
+	if (r_out&&!r_app){
 		fileNum = fileno(fopen(holder.redirect_out, "w"));
 		dup2(fileNum, STDOUT_FILENO);
 		close(fileNum);
 	}
-  remove_job(job);
-	//printf("create process pid==0 remove\n");
-	//fflush(stdout);
+
+	if(p_in){
+		dup2(job->pfd[read][0], STDIN_FILENO);
+		close(job->pfd[read][0]);
+	} else if(0 <= read-1){
+		close(job->pfd[read][0]);
+	}
+
+	if (p_out){
+		dup2(job->pfd[write][1], STDOUT_FILENO);
+		close(job->pfd[write][1]);
+	}
+	else {
+		close(job->pfd[write][1]);
+	}
 	child_run_command(holder.cmd);
-	//printf("create process pid==0 command\n");
-	//fflush(stdout);
+  remove_job(job);
 	exit(EXIT_SUCCESS);
 }
-else if (pid>0){
-	//printf("create process pid>0 \n");
-	//fflush(stdout);
+else {
+
+	if(p_out){
+		close(job->pfd[write][1]);
+	}
+	if(p_in){
+		close(job->pfd[read][0]);
+	}
 	push_back_pid_deque(&job->pid_queue, pid);
 	parent_run_command(holder.cmd);
 }
-//printf("create process end\n");
-//fflush(stdout);
 ++job->num;
 }
 
 // Run a list of commands
 void run_script(CommandHolder* holders) {
-	//printf("run script test\n");
-	//fflush(stdout);
   if (holders == NULL){
-	  //printf("run script holders==NULL\n");
-		//fflush(stdout);
     return;
 	}
 	if (initial) {
@@ -530,46 +477,30 @@ void run_script(CommandHolder* holders) {
 
   if (get_command_holder_type(holders[0]) == EXIT &&
       get_command_holder_type(holders[1]) == EOC) {
-			//printf("run script command_holder\n");
-			//fflush(stdout);
       end_main_loop();
       return;
   }
   CommandType type;
   JOB job;
 init_job(&job);
-//printf("run script init\n");
-//fflush(stdout);
   // Run all commands in the `holder` array
   for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i)
     create_process(holders[i], &job);
-		//printf("run script create process\n");
-		//fflush(stdout);
   if (!(holders[0].flags & BACKGROUND)) {
-		//printf("run script !holders if\n");
-		//fflush(stdout);
 		int stat=0;
     // Not a background Job
     // TODO: Wait for all processes under the job to complete
     //IMPLEMENT_ME();
 		if(!is_empty_pid_deque(&job.pid_queue)){
-		//printf("run script !holders !is_empty\n");
-		//fflush(stdout);
 			waitpid(pop_front_pid_deque(&job.pid_queue),&stat,0);
 		}
 		remove_job(&job);
   }
   else {
-		//printf("run script !holders else\n");
-		//fflush(stdout);
 	  if(is_empty_job_deque(&Jobs)){
-			//printf("run script !holders else is_empty\n");
-			//fflush(stdout);
 		  job.job_id =1;
 	  }
 	  else {
-			//printf("run script !holders else else\n");
-			//fflush(stdout);
 		  job.job_id = peek_back_job_deque(&Jobs).job_id +1;
 	  }
     // A background job.
@@ -578,7 +509,5 @@ init_job(&job);
 	  push_back_job_deque(&Jobs, job);
     // TODO: Once jobs are implemented, uncomment and fill the following line
     print_job_bg_start(job.job_id, peek_front_pid_deque(&job.pid_queue), job.command);
-		//printf("run script end\n");
-		//fflush(stdout);
 	}
 }
